@@ -1,0 +1,6 @@
+Flask
+requests
+gspread
+google-auth
+google-cloud-vision
+gunicorn
