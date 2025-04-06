@@ -1,3 +1,4 @@
+
 import os
 import json
 from flask import Flask, request
@@ -9,7 +10,6 @@ import random
 
 app = Flask(__name__)
 
-# 👉 Credenciales desde variable de entorno en Render
 cred_string = os.getenv("CREDENTIALS_JSON")
 if not cred_string:
     raise Exception("❌ Variable de entorno CREDENTIALS_JSON no encontrada.")
@@ -19,11 +19,9 @@ try:
 except json.JSONDecodeError:
     raise Exception("❌ Error al parsear CREDENTIALS_JSON.")
 
-# Guardar el archivo (opcional)
 with open("credenciales.json", "w") as f:
     json.dump(credenciales_dict, f)
 
-# 👉 Inicializar Google APIs
 try:
     creds = Credentials.from_service_account_info(
         credenciales_dict,
@@ -36,7 +34,6 @@ except Exception as e:
 client = gspread.authorize(creds)
 sheet = client.open_by_key("1_ZSk0z7Lp81rT-bBz4fmSJj0eyGjVWvrUZm432QzgoM").sheet1
 
-# 👉 Configuración del bot
 VERIFY_TOKEN = "mi_token_secreto"
 ACCESS_TOKEN = "EAAItRKRWhG4BO1QZAhnRz7ecNnNsJhniLZAb6iMlPy2M1MQ0QwFTzEVOrtmo39fOlGZAaLUmoSf7N3UJZCDPa3m95ni9O2xGJASH9uY99M53bnElELB890QWlY0QOyewBvENqb91ZCDLTxIanuN5ePHUjLS8OXbyukJIBhLWWjZAIMwgZCANwzZBaUGE"
 usuarios = {}
@@ -51,7 +48,6 @@ retos = [
     "Tómate una foto con un joven.",
 ]
 
-# ✅ Enviar mensaje
 def send_message(recipient_id, message_text):
     payload = {
         "recipient": {"id": recipient_id},
@@ -64,14 +60,12 @@ def send_message(recipient_id, message_text):
         json=payload
     )
 
-# ✅ Registrar participante y enviar reto
 def registrar_participante(nombre, iglesia, sender_id):
     reto_asignado = random.choice(retos)
     sheet.append_row([nombre, iglesia, sender_id, reto_asignado, "0"])
     send_message(sender_id, "🎉 ¡Te has registrado exitosamente!")
     send_message(sender_id, f"📸 Tu primer reto es: {reto_asignado}")
 
-# ✅ Mensajes de texto
 def handle_message(sender_id, text):
     if "mi nombre es" in text.lower():
         nombre = text.split("mi nombre es")[-1].strip()
@@ -87,7 +81,6 @@ def handle_message(sender_id, text):
     else:
         send_message(sender_id, "No entendí tu mensaje. Intenta con: 'Mi nombre es...'")
 
-# ✅ Analizar imagen con Vision
 def analizar_imagen(sender_id, image_url):
     response = requests.get(image_url)
     if response.status_code != 200:
@@ -104,7 +97,6 @@ def analizar_imagen(sender_id, image_url):
     else:
         send_message(sender_id, "❌ No detecté personas en la imagen. Intenta con otra foto.")
 
-# ✅ Marcar progreso y asignar nuevo reto
 def marcar_reto_completado(sender_id):
     registros = sheet.get_all_records()
     for i, row in enumerate(registros, start=2):
@@ -113,7 +105,6 @@ def marcar_reto_completado(sender_id):
             if completados >= 7:
                 sheet.update_cell(i, 5, str(completados))
                 send_message(sender_id, "🎉 ¡Has completado 7 retos! Ahora pasarás a la siguiente fase. 🎯")
-                # Aquí puedes activar siguiente nivel
             else:
                 nuevo_reto = random.choice(retos)
                 sheet.update_cell(i, 4, nuevo_reto)
@@ -122,7 +113,6 @@ def marcar_reto_completado(sender_id):
             return
     send_message(sender_id, "⚠️ No encontré tu registro. ¿Ya te registraste?")
 
-# ✅ Webhook principal
 @app.route("/webhook", methods=["GET", "POST"])
 def webhook():
     if request.method == "GET":
@@ -136,19 +126,15 @@ def webhook():
 
         if data.get("entry"):
             for entry in data["entry"]:
-                # ✅ Messenger clásico
                 for messaging_event in entry.get("messaging", []):
                     sender_id = messaging_event["sender"]["id"]
                     message = messaging_event.get("message", {})
-
                     if "text" in message:
                         handle_message(sender_id, message["text"])
                     elif "attachments" in message:
                         for att in message["attachments"]:
                             if att["type"] == "image":
                                 analizar_imagen(sender_id, att["payload"]["url"])
-
-                # ✅ Instagram / WhatsApp moderno
                 for change in entry.get("changes", []):
                     value = change.get("value", {})
                     if change.get("field") == "messages":
@@ -161,10 +147,13 @@ def webhook():
                                 handle_message(sender_id, text)
                             elif sender_id and image:
                                 analizar_imagen(sender_id, image.get("url"))
-
         return "EVENT_RECEIVED", 200
 
-# ✅ Ruta raíz para evitar 404 en Render
 @app.route("/")
 def index():
     return "✅ Bot de Instagram activo y funcionando."
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+
