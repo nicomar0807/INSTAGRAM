@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: bot-instagram
+    env: python
+    buildCommand: ""
+    startCommand: gunicorn app:app --config gunicorn.conf.py
+    envVars:
+      - key: CREDENTIALS_JSON
+        sync: false
