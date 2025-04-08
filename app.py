@@ -68,7 +68,7 @@ def send_message(recipient_id, message_text):
         "message": {"text": message_text}
     }
     headers = {"Content-Type": "application/json"}
-    url = f"https://graph.facebook.com/v17.0/{PAGE_ID}/messages?access_token={ACCESS_TOKEN}"
+    url = f"https://graph.facebook.com/v17.0/{PAGE_ID}/messages?access_token={EAAItRKRWhG4BO27BhssDZAAOa4Ojg33qbszrEbdl5fK7sHVS65W2xsFalZBexgkZC0cWAgC1BOMQny19W6ZC9qCbT054c1ywZBDnAbtXZAQi9SLTJXtVdkzVlM8jiK6ZB348TIVum8QsPsERcLvnka9ff4IjiTnCTZBZCpIR4eYWbZCOA8iLA3sdR5ZBZCLOJQZDZD}"
     response = requests.post(url, headers=headers, json=payload)
     print(f"📤 Enviando mensaje a {recipient_id}: {message_text}")
     print(f"🔁 Respuesta send_message: {response.status_code} - {response.text}")
