@@ -14,7 +14,8 @@ load_dotenv()
 
 # Configuración y tokens
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "mi_token_secreto")
-ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
+ACCESS_TOKEN = os.getenv("EAAItRKRWhG4BO1QZAhnRz7ecNnNsJhniLZAb6iMlPy2M1MQ0QwFTzEVOrtmo39fOlGZAaLUmoSf7N3UJZCDPa3m95ni9O2xGJASH9uY99M53bnElELB890QWlY0QOyewBvENqb91ZCDLTxIanuN5ePHUjLS8OXbyukJIBhLWWjZAIMwgZCANwzZBaUGE"
+)
 PAGE_ID = os.getenv("PAGE_ID")
 
 # Inicializar Flask
