@@ -181,6 +181,7 @@ def webhook():
 # Página de prueba
 @app.route("/")
 def index():
+    send_message("642412358760680", "✅ Prueba de respuesta desde el bot.")
     return "✅ Bot de Instagram activo y funcionando."
 
 # Ejecutar app
