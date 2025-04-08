@@ -1,6 +1,7 @@
 import os
 import json
 import random
+import re
 import requests
 import gspread
 from flask import Flask, request
@@ -13,12 +14,8 @@ load_dotenv()
 
 # Configuración y tokens
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "mi_token_secreto")
-ACCESS_TOKEN = os.getenv("ACCESS_TOKEN", "EAAItRKRWhG4BO1QZAhnRz7ecNnNsJhniLZAb6iMlPy2M1MQ0QwFTzEVOrtmo39fOlGZAaLUmoSf7N3UJZCDPa3m95ni9O2xGJASH9uY99M53bnElELB890QWlY0QOyewBvENqb91ZCDLTxIanuN5ePHUjLS8OXbyukJIBhLWWjZAIMwgZCANwzZBaUGE"
-)
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 PAGE_ID = os.getenv("PAGE_ID")
-
-# ID de prueba para enviar mensaje al arrancar
-TEST_RECIPIENT_ID = "642412358760680"
 
 # Inicializar Flask
 app = Flask(__name__)
@@ -60,28 +57,21 @@ retos = [
     "Tómate una foto con una persona con una mascota.",
     "Tómate una foto con una pareja.",
     "Tómate una foto con un adulto.",
-    "Tómate una foto con un joven.",
+    "Tómate una foto con un joven."
 ]
 
-# Enviar mensajes por la API de Meta con logs
+# Enviar mensajes
 def send_message(recipient_id, message_text):
     payload = {
+        "messaging_product": "instagram",
         "recipient": {"id": recipient_id},
         "message": {"text": message_text}
     }
     headers = {"Content-Type": "application/json"}
-    response = requests.post(
-        f"https://graph.facebook.com/v17.0/me/messages?access_token={ACCESS_TOKEN}",
-        headers=headers,
-        json=payload
-    )
+    url = f"https://graph.facebook.com/v17.0/{PAGE_ID}/messages?access_token={ACCESS_TOKEN}"
+    response = requests.post(url, headers=headers, json=payload)
     print(f"📤 Enviando mensaje a {recipient_id}: {message_text}")
     print(f"🔁 Respuesta send_message: {response.status_code} - {response.text}")
-
-@app.route("/startup")
-def startup():
-    send_message(TEST_RECIPIENT_ID, "✅ Bot iniciado correctamente.")
-    return "Mensaje de prueba enviado"
 
 # Registrar participante
 def registrar_participante(nombre, iglesia, sender_id):
@@ -89,22 +79,6 @@ def registrar_participante(nombre, iglesia, sender_id):
     sheet.append_row([nombre, iglesia, sender_id, reto_asignado, "0"])
     send_message(sender_id, "🎉 ¡Te has registrado exitosamente!")
     send_message(sender_id, f"📸 Tu primer reto es: {reto_asignado}")
-
-# Manejo de mensajes de texto
-def handle_message(sender_id, text):
-    if "mi nombre es" in text.lower():
-        nombre = text.split("mi nombre es")[-1].strip()
-        usuarios[sender_id] = {"nombre": nombre}
-        send_message(sender_id, "Gracias. ¿A qué iglesia perteneces?")
-    elif "mi iglesia es" in text.lower():
-        if sender_id in usuarios and "nombre" in usuarios[sender_id]:
-            iglesia = text.split("mi iglesia es")[-1].strip()
-            usuarios[sender_id]["iglesia"] = iglesia
-            registrar_participante(usuarios[sender_id]["nombre"], iglesia, sender_id)
-        else:
-            send_message(sender_id, "Primero dime tu nombre.")
-    else:
-        send_message(sender_id, "No entendí tu mensaje. Intenta con: 'Mi nombre es...'")
 
 # Analizar imagen con Vision
 def analizar_imagen(sender_id, image_url):
@@ -123,6 +97,21 @@ def analizar_imagen(sender_id, image_url):
     else:
         send_message(sender_id, "❌ No detecté personas en la imagen. Intenta con otra foto.")
 
+# Asignar nuevo reto único
+def asignar_nuevo_reto(sender_id):
+    registros = sheet.get_all_records()
+    retos_completados = []
+
+    for row in registros:
+        if row["ID"] == sender_id:
+            retos_completados.append(row["Reto actual"])
+
+    retos_disponibles = [r for r in retos if r not in retos_completados]
+    if retos_disponibles:
+        return random.choice(retos_disponibles)
+    else:
+        return "🏆 ¡Has completado todos los retos posibles!"
+
 # Marcar reto como completado en Sheets
 def marcar_reto_completado(sender_id):
     registros = sheet.get_all_records()
@@ -133,12 +122,35 @@ def marcar_reto_completado(sender_id):
                 sheet.update_cell(i, 5, str(completados))
                 send_message(sender_id, "🎉 ¡Has completado 7 retos! Ahora pasarás a la siguiente fase. 🎯")
             else:
-                nuevo_reto = random.choice(retos)
+                nuevo_reto = asignar_nuevo_reto(sender_id)
                 sheet.update_cell(i, 4, nuevo_reto)
                 sheet.update_cell(i, 5, str(completados))
                 send_message(sender_id, f"🔥 Nuevo reto: {nuevo_reto}")
             return
     send_message(sender_id, "⚠️ No encontré tu registro. ¿Ya te registraste?")
+
+# Manejo de mensajes de texto
+def handle_message(sender_id, text):
+    text = text.lower()
+
+    nombre_match = re.search(r"(mi nombre es|soy|me llamo)\s+(.*)", text)
+    if nombre_match:
+        nombre = nombre_match.group(2).strip().title()
+        usuarios[sender_id] = {"nombre": nombre}
+        send_message(sender_id, f"Gracias {nombre}. ¿A qué iglesia perteneces?")
+        return
+
+    iglesia_match = re.search(r"(mi iglesia es|pertenezco a|voy a la iglesia)\s+(.*)", text)
+    if iglesia_match:
+        if sender_id in usuarios and "nombre" in usuarios[sender_id]:
+            iglesia = iglesia_match.group(2).strip().title()
+            usuarios[sender_id]["iglesia"] = iglesia
+            registrar_participante(usuarios[sender_id]["nombre"], iglesia, sender_id)
+        else:
+            send_message(sender_id, "Primero dime tu nombre. Ej: 'Mi nombre es Ana'")
+        return
+
+    send_message(sender_id, "No entendí tu mensaje. Intenta con: 'Mi nombre es...' o 'Mi iglesia es...'")
 
 # Webhook principal
 @app.route("/webhook", methods=["GET", "POST"])
@@ -181,7 +193,6 @@ def webhook():
 @app.route("/")
 def index():
     return "✅ Bot de Instagram activo y funcionando."
-
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
