@@ -11,10 +11,13 @@ from google.cloud import vision
 # Cargar variables de entorno
 load_dotenv()
 
-# Tokens y configuración
+# Configuración y tokens
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "mi_token_secreto")
-ACCESS_TOKEN = os.getenv("ACCESS_TOKEN", "EAAItRKRWhG4BO1QZAhnRz7ecNnNsJhniLZAb6iMlPy2M1MQ0QwFTzEVOrtmo39fOlGZAaLUmoSf7N3UJZCDPa3m95ni9O2xGJASH9uY99M53bnElELB890QWlY0QOyewBvENqb91ZCDLTxIanuN5ePHUjLS8OXbyukJIBhLWWjZAIMwgZCANwzZBaUGE")
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN", "TU_ACCESS_TOKEN_AQUI")
 PAGE_ID = os.getenv("PAGE_ID")
+
+# ID de prueba para enviar mensaje al arrancar
+TEST_RECIPIENT_ID = "642412358760680"
 
 # Inicializar Flask
 app = Flask(__name__)
@@ -59,20 +62,28 @@ retos = [
     "Tómate una foto con un joven.",
 ]
 
-# Enviar mensajes por la API de Meta
+# Enviar mensajes por la API de Meta con logs
 def send_message(recipient_id, message_text):
     payload = {
         "recipient": {"id": recipient_id},
         "message": {"text": message_text}
     }
     headers = {"Content-Type": "application/json"}
-    requests.post(
+    response = requests.post(
         f"https://graph.facebook.com/v17.0/me/messages?access_token={ACCESS_TOKEN}",
         headers=headers,
         json=payload
     )
+    print(f"📤 Enviando mensaje a {recipient_id}: {message_text}")
+    print(f"🔁 Respuesta send_message: {response.status_code} - {response.text}")
 
-# Registrar a un nuevo participante en la hoja de cálculo
+# Enviar mensaje de prueba al iniciar
+@app.before_first_request
+def mensaje_de_prueba():
+    print("🚀 Enviando mensaje de prueba inicial...")
+    send_message(TEST_RECIPIENT_ID, "✅ Este es un mensaje de prueba enviado automáticamente.")
+
+# Registrar participante
 def registrar_participante(nombre, iglesia, sender_id):
     reto_asignado = random.choice(retos)
     sheet.append_row([nombre, iglesia, sender_id, reto_asignado, "0"])
@@ -95,7 +106,7 @@ def handle_message(sender_id, text):
     else:
         send_message(sender_id, "No entendí tu mensaje. Intenta con: 'Mi nombre es...'")
 
-# Análisis de imágenes con Google Vision
+# Analizar imagen con Vision
 def analizar_imagen(sender_id, image_url):
     response = requests.get(image_url)
     if response.status_code != 200:
@@ -112,7 +123,7 @@ def analizar_imagen(sender_id, image_url):
     else:
         send_message(sender_id, "❌ No detecté personas en la imagen. Intenta con otra foto.")
 
-# Actualizar progreso en hoja de cálculo
+# Marcar reto como completado en Sheets
 def marcar_reto_completado(sender_id):
     registros = sheet.get_all_records()
     for i, row in enumerate(registros, start=2):
@@ -172,7 +183,9 @@ def webhook():
 def index():
     return "✅ Bot de Instagram activo y funcionando."
 
+# Ejecutar app
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
 
