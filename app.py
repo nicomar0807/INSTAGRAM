@@ -179,10 +179,10 @@ def webhook():
         return "EVENT_RECEIVED", 200
 
 # Página de prueba
-
-@app.before_first_request  # ✅ Esto está bien
+@app.before_first_request
 def iniciar_bot():
-    send_message("642412358760680", "✅ Este es un mensaje de prueba enviado automáticamente.")
+    print("🚀 Enviando mensaje de prueba inicial...")
+    send_message(TEST_RECIPIENT_ID, "✅ Este es un mensaje de prueba enviado automáticamente.")
 
 
 # Ejecutar app
