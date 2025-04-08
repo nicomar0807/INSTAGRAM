@@ -54,11 +54,13 @@ def send_message(recipient_id, message_text):
         "message": {"text": message_text}
     }
     headers = {"Content-Type": "application/json"}
-    requests.post(
+    response = requests.post(
         f"https://graph.facebook.com/v17.0/me/messages?access_token={ACCESS_TOKEN}",
         headers=headers,
         json=payload
     )
+    print("send_message response:", response.status_code, response.text)
+
 
 def registrar_participante(nombre, iglesia, sender_id):
     reto_asignado = random.choice(retos)
