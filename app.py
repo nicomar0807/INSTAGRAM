@@ -178,16 +178,12 @@ def webhook():
                                 analizar_imagen(sender_id, image.get("url"))
         return "EVENT_RECEIVED", 200
 
-# Página de prueba
 @app.before_first_request
 def iniciar_bot():
     print("🚀 Enviando mensaje de prueba inicial...")
     send_message(TEST_RECIPIENT_ID, "✅ Este es un mensaje de prueba enviado automáticamente.")
 
-
-# Ejecutar app
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
 
