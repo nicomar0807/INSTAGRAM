@@ -79,9 +79,10 @@ def send_message(recipient_id, message_text):
 
 # Enviar mensaje de prueba al iniciar
 @app.before_first_request
-def mensaje_de_prueba():
+def iniciar_bot():
     print("🚀 Enviando mensaje de prueba inicial...")
     send_message(TEST_RECIPIENT_ID, "✅ Este es un mensaje de prueba enviado automáticamente.")
+
 
 # Registrar participante
 def registrar_participante(nombre, iglesia, sender_id):
@@ -178,10 +179,10 @@ def webhook():
                                 analizar_imagen(sender_id, image.get("url"))
         return "EVENT_RECEIVED", 200
 
-@app.before_first_request
-def iniciar_bot():
-    print("🚀 Enviando mensaje de prueba inicial...")
-    send_message(TEST_RECIPIENT_ID, "✅ Este es un mensaje de prueba enviado automáticamente.")
+@app.route("/")
+def index():
+    return "✅ Bot de Instagram activo y funcionando."
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
