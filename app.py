@@ -77,12 +77,10 @@ def send_message(recipient_id, message_text):
     print(f"📤 Enviando mensaje a {recipient_id}: {message_text}")
     print(f"🔁 Respuesta send_message: {response.status_code} - {response.text}")
 
-# Enviar mensaje de prueba al iniciar
-@app.before_first_request
-def iniciar_bot():
-    print("🚀 Enviando mensaje de prueba inicial...")
-    send_message(TEST_RECIPIENT_ID, "✅ Este es un mensaje de prueba enviado automáticamente.")
-
+@app.route("/startup")
+def startup():
+    send_message(TEST_RECIPIENT_ID, "✅ Bot iniciado correctamente.")
+    return "Mensaje de prueba enviado"
 
 # Registrar participante
 def registrar_participante(nombre, iglesia, sender_id):
