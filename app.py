@@ -179,10 +179,11 @@ def webhook():
         return "EVENT_RECEIVED", 200
 
 # Página de prueba
-@app.route("/")
-def index():
-    send_message("642412358760680", "✅ Prueba de respuesta desde el bot.")
-    return "✅ Bot de Instagram activo y funcionando."
+
+@app.before_first_request  # ✅ Esto está bien
+def iniciar_bot():
+    send_message("642412358760680", "✅ Este es un mensaje de prueba enviado automáticamente.")
+
 
 # Ejecutar app
 if __name__ == "__main__":
