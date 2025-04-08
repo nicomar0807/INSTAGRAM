@@ -55,7 +55,8 @@ def send_message(recipient_id, message_text):
     }
     headers = {"Content-Type": "application/json"}
     response = requests.post(
-        f"https://graph.facebook.com/v17.0/{608583202336837}/messages?access_token={ACCESS_TOKEN}"
+        PAGE_ID = os.getenv("PAGE_ID")
+f"https://graph.facebook.com/v17.0/{608583202336837}/messages?access_token={ACCESS_TOKEN}"
 ",
         headers=headers,
         json=payload
