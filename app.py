@@ -17,7 +17,7 @@ VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "mi_token_secreto")
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 PAGE_ID = os.getenv("PAGE_ID")
 
-print(f"🔐 ACCESS_TOKEN (corto): {ACCESS_TOKEN[:10]}...")
+print(f"🔐 ACCESS_TOKEN (corto): {ACCESS_TOKEN[:EAAItRKRWh]}...")
 
 # Inicializar Flask
 app = Flask(__name__)
