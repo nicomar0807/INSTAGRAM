@@ -71,11 +71,14 @@ def send_message(recipient_id, message_text):
     }
     headers = {"Content-Type": "application/json"}
     INSTAGRAM_ID = os.getenv("INSTAGRAM_ID")  # Usa tu variable de entorno
-  url = f"https://graph.facebook.com/v17.0/17841408385112346/messages?access_token={ACCESS_TOKEN}"
+    
+    # Corregir la indentación
+    url = f"https://graph.facebook.com/v17.0/17841408385112346/messages?access_token={ACCESS_TOKEN}"
 
-  response = requests.post(url, headers=headers, json=payload)
+    response = requests.post(url, headers=headers, json=payload)
     print(f"📤 Enviando mensaje a {recipient_id}: {message_text}")
     print(f"🔁 Respuesta send_message: {response.status_code} - {response.text}")
+
 
 # Registrar participante
 def registrar_participante(nombre, iglesia, sender_id):
