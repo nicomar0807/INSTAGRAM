@@ -70,9 +70,10 @@ def send_message(recipient_id, message_text):
         "message": {"text": message_text}
     }
     headers = {"Content-Type": "application/json"}
-    INSTAGRAM_ID = "17841408385112346"
-url = f"https://graph.facebook.com/v17.0/{INSTAGRAM_ID}/messages?access_token={ACCESS_TOKEN}"
-response = requests.post(url, headers=headers, json=payload)
+    INSTAGRAM_ID = os.getenv("INSTAGRAM_ID")  # Usa tu variable de entorno
+    url = f"https://graph.facebook.com/v17.0/{INSTAGRAM_ID}/messages?access_token={ACCESS_TOKEN}"
+
+    response = requests.post(url, headers=headers, json=payload)
     print(f"📤 Enviando mensaje a {recipient_id}: {message_text}")
     print(f"🔁 Respuesta send_message: {response.status_code} - {response.text}")
 
