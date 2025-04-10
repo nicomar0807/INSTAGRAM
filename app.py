@@ -71,9 +71,9 @@ def send_message(recipient_id, message_text):
     }
     headers = {"Content-Type": "application/json"}
     INSTAGRAM_ID = os.getenv("INSTAGRAM_ID")  # Usa tu variable de entorno
-    url = f"https://graph.facebook.com/v17.0/{INSTAGRAM_ID}/messages?access_token={ACCESS_TOKEN}"
+  url = f"https://graph.facebook.com/v17.0/17841408385112346/messages?access_token={ACCESS_TOKEN}"
 
-    response = requests.post(url, headers=headers, json=payload)
+  response = requests.post(url, headers=headers, json=payload)
     print(f"📤 Enviando mensaje a {recipient_id}: {message_text}")
     print(f"🔁 Respuesta send_message: {response.status_code} - {response.text}")
 
@@ -197,6 +197,13 @@ def webhook():
 @app.route("/")
 def index():
     return "✅ Bot de Instagram activo y funcionando."
+
+# 🧪 Prueba manual de envío
+try:
+    test_id = "642412358760680"  # ID del usuario de prueba
+    send_message(test_id, "👋 ¡Hola! Este es un mensaje de prueba desde tu bot.")
+except Exception as e:
+    print("❌ Error en la prueba de envío:", str(e))
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
